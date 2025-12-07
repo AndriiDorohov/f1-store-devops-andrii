@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: f1_postgres
+    environment:
+      POSTGRES_DB: f1store
+      POSTGRES_USER: f1user
+      POSTGRES_PASSWORD: f1password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: f1_redis
+    ports:
+      - "6379:6379"
+
+  backend_rds:
+    build: ./backend_rds
+    container_name: f1_backend_rds
+    depends_on:
+      - postgres
+    # env_file will be added in the next step
+    ports:
+      - "8000:8000"
+
+  backend_redis:
+    build: ./backend_redis
+    container_name: f1_backend_redis
+    depends_on:
+      - redis
+    # env_file will be added in the next step
+    ports:
+      - "8001:8001"
+
+  frontend:
+    build: ./frontend
+    container_name: f1_frontend
+    depends_on:
+      - backend_rds
+      - backend_redis
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres_data:
