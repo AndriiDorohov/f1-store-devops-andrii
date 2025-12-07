@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: f1_postgres
+    environment:
+      POSTGRES_DB: f1store
+      POSTGRES_USER: f1user
+      POSTGRES_PASSWORD: f1password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: f1_redis
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+
+  backend_rds:
+    build: ./backend_rds
+    container_name: f1_backend_rds
+    depends_on:
+      - postgres
+    env_file:
+      - ./backend_rds/.env
+    ports:
+      - "8000:8000"
+
+  backend_redis:
+    build: ./backend_redis
+    container_name: f1_backend_redis
+    depends_on:
+      - redis
+    env_file:
+      - ./backend_redis/.env
+    ports:
+      - "8001:8000"
+
+
+  frontend:
+    build: ./frontend
+    container_name: f1_frontend
+    depends_on:
+      - backend_rds
+      - backend_redis
+    ports:
+      - "8080:80"
+
+volumes:
+  postgres_data:
+  redis_data:

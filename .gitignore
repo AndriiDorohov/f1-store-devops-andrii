@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+
+# Django
+*.log
+/static/
+media/
+
+# Env files
+backend_rds/.env
+backend_redis/.env
+frontend/.env
+
+# Docker
+*.pid
+.env.docker.local
