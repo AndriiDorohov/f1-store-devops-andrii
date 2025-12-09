@@ -1,0 +1,49 @@
+name: Build and push Docker images to ECR
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+
+jobs:
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend_rds image
+        run: |
+          docker build -t f1-backend-rds:latest ./backend_rds
+          docker tag f1-backend-rds:latest $ECR_REGISTRY/f1-backend-rds:latest
+          docker push $ECR_REGISTRY/f1-backend-rds:latest
+
+      - name: Build and push backend_redis image
+        run: |
+          docker build -t f1-backend-redis:latest ./backend_redis
+          docker tag f1-backend-redis:latest $ECR_REGISTRY/f1-backend-redis:latest
+          docker push $ECR_REGISTRY/f1-backend-redis:latest
+
+      - name: Build and push frontend image
+        run: |
+          docker build -t f1-frontend:latest ./frontend
+          docker tag f1-frontend:latest $ECR_REGISTRY/f1-frontend:latest
+          docker push $ECR_REGISTRY/f1-frontend:latest
